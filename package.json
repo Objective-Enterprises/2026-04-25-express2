@@ -4,6 +4,8 @@
   "main": "app.js",
   "scripts": {
     "test": "vitest run",
+    "test:watch": "vitest",
+    "test:threads": "vitest run tests/threads",
     "start": "node main.js",
     "populate": "node src/scripts/populate_db.js",
     "dev": "nodemon main.js",
