@@ -16,7 +16,7 @@ const authHandler = async (req, res, next) => {
   } catch (error) {
     throw createAppError("Invalid token", 401);
   }
-  const user = await User.findById(decoded.id);
+  const user = await User.findById(decoded.userId);
   if (!user) {
     throw createAppError("User not found", 404);
   }

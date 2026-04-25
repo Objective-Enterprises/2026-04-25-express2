@@ -4,38 +4,41 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const register = async (input) => {
-  const existingUser = await User.findOne({ email: input.email })
+  const name = String(input.name);
+  const email = String(input.email);
+  const password = String(input.password);
+
+  const existingUser = await User.findOne({ email });
   if (existingUser) {
-    throw createAppError("User with this email already exists", 400);
+    // Do not reveal whether the email is already registered — return the same
+    // generic response as a successful registration to prevent user enumeration.
+    return;
   }
 
-  const hash = await bcrypt.hash(input.password, 10);
-  const newUser = await User.create({
-    name: input.name,
-    email: input.email,
-    password: hash
-  })
-  const output = {
-    id: newUser._id,
-    name: newUser.name,
-    email: newUser.email
-  }
-  return output;
+  const hash = await bcrypt.hash(password, 10);
+  await User.create({
+    name,
+    email,
+    password: hash,
+  });
 }
 // async function register (input) {
 // }
 
 export const login = async (input) => {
-  const user = await User.findOne({ email: input.email });
+  const email = String(input.email);
+  const password = String(input.password);
+
+  const user = await User.findOne({ email });
   if (!user) {
     throw createAppError("Invalid email or password", 401);
   }
-  const matching = await bcrypt.compare(input.password, user.password);
+  const matching = await bcrypt.compare(password, user.password);
   if (!matching) {
     throw createAppError("Invalid email or password", 401);
   }
   const token = jwt.sign(
-    { id: user._id }, // Data that goes in the token
+    { userId: user._id }, // Data that goes in the token
     process.env.JWT_SECRET, // App's signature
     { expiresIn: "1h" }
   );

@@ -52,7 +52,11 @@ export const createThread = async (req, res) => {
 // PUT /api/threads/:id
 
 export const updateThread = async (req, res) => {
-  const updatedThread = await updateThreadById(req.params.id, req.body);
+  const updatedThread = await updateThreadById(
+    req.params.id,
+    req.body,
+    req.user.userId,
+  );
   res.status(200).json({
     success: true,
     message: "Thread updated successfully",
@@ -62,7 +66,10 @@ export const updateThread = async (req, res) => {
 
 // DELETE /api/threads/:id
 export const deleteThread = async (req, res) => {
-  const deletedThread = await deleteThreadById(req.params.id);
+  const deletedThread = await deleteThreadById(
+    req.params.id,
+    req.user.userId,
+  );
   res.status(200).json({
     success: true,
     message: "Thread deleted successfully",

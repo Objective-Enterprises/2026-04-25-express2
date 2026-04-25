@@ -1,11 +1,10 @@
 import { register, login } from "../services/authService.js";
 
 const registerUser = async (req, res) => {
-  const user = await register(req.body);
+  await register(req.body);
   res.status(201).json({
     success: true,
-    message: "User registered successfully",
-    data: user,
+    message: "If the details are valid, your account has been created. Please log in.",
   });
 }
 

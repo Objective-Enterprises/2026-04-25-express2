@@ -44,8 +44,35 @@ export const createNewThread = async (title, content, author, subreddit) => {
   return populatedThread;
 };
 
-export const updateThreadById = async (id, updateData) => {
-  const updatedThread = await Thread.findByIdAndUpdate(id, updateData, {
+const ALLOWED_THREAD_UPDATE_FIELDS = ["title", "content"];
+
+export const updateThreadById = async (id, updateData, userId) => {
+  const extraFields = Object.keys(updateData).filter(
+    (key) => !ALLOWED_THREAD_UPDATE_FIELDS.includes(key),
+  );
+  if (extraFields.length > 0) {
+    throw createAppError(
+      `Only the following fields may be updated: ${ALLOWED_THREAD_UPDATE_FIELDS.join(", ")}. Disallowed fields: ${extraFields.join(", ")}`,
+      400,
+    );
+  }
+
+  const thread = await Thread.findById(id);
+  if (!thread) {
+    throw createAppError("Thread not found", 404);
+  }
+  if (thread.author.toString() !== userId.toString()) {
+    throw createAppError("You are not allowed to update this thread", 403);
+  }
+
+  const sanitizedUpdate = {};
+  for (const field of ALLOWED_THREAD_UPDATE_FIELDS) {
+    if (updateData[field] !== undefined) {
+      sanitizedUpdate[field] = String(updateData[field]);
+    }
+  }
+
+  const updatedThread = await Thread.findByIdAndUpdate(id, sanitizedUpdate, {
     new: true,
     runValidators: true,
   });
@@ -57,7 +84,15 @@ export const updateThreadById = async (id, updateData) => {
   return updatedThread;
 };
 
-export const deleteThreadById = async (id) => {
+export const deleteThreadById = async (id, userId) => {
+  const thread = await Thread.findById(id);
+  if (!thread) {
+    throw createAppError("Thread not found", 404);
+  }
+  if (thread.author.toString() !== userId.toString()) {
+    throw createAppError("You are not allowed to delete this thread", 403);
+  }
+
   const deletedThread = await Thread.findByIdAndDelete(id);
 
   if (!deletedThread) {
